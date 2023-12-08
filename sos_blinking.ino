@@ -1,20 +1,21 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define PORT13 100000
-
 #define TIME_UNIT 200
+#define PORT PB5
 
 void short_blink() {
-    PORTB |= (1 << PB1);
+    PORTB |= (1 << PORT);
     _delay_ms(TIME_UNIT);
-    PORTB &= ~(1 << PB1);
+    PORTB &= ~(1 << PORT);
+    _delay_ms(TIME_UNIT);
 }
 
 void long_blink() {
-    PORTB |= (1 << PB1);
+    PORTB |= (1 << PORT);
     _delay_ms(TIME_UNIT * 3);
-    PORTB &= ~(1 << PB1);
+    PORTB &= ~(1 << PORT);
+    _delay_ms(TIME_UNIT);
 }
 
 void startMorseCode() {
@@ -33,8 +34,16 @@ void endMorseCode() {
     short_blink();
 }
 
+char toUpperCase(char c) {
+    if (c >= 'a' && c <= 'z') {
+        return c - 32;
+    }
+
+    return c;
+}
+
 void translateToMorse(char c) {
-    switch (c) {
+    switch (toUpperCase(c)) {
         case 'A':
             short_blink();
             long_blink();
@@ -242,17 +251,26 @@ void translateToMorse(char c) {
     }
 }
 
-void translateToMorse(char[] str) {
-    for (int i = 0; i < str.size(); i++)
-        translateToMorse(str[i]);
+void translateToMorse(char str[]) {
+    int i = 0;
+    while (str[i] != '\0') {
+        if (str[i] == ' ')
+            _delay_ms(TIME_UNIT * 6);
+        else {
+            translateToMorse(str[i]);
+            _delay_ms(TIME_UNIT * 2);
+        }
+
+        i++;
+    }
 }
 
 int main() {
-    DDRB |= (1 << PB1);
+    DDRB |= (1 << PORT);
 
     while (1) {
         startMorseCode();
-        translateToMorse("SOS");
+        translateToMorse("hello");
         endMorseCode();
 
         // Delay next start
