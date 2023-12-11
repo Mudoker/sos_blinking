@@ -1,20 +1,22 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define TIME_UNIT 200
-#define PORT PB5
+#define LED_PIN PORTB0
+#define BUTTON_PIN PIND2
+
+#define TIME_UNIT 1000
 
 void short_blink() {
-    PORTB |= (1 << PORT);
+    PORTB |= (1 << LED_PIN);
     _delay_ms(TIME_UNIT);
-    PORTB &= ~(1 << PORT);
+    PORTB &= ~(1 << LED_PIN);
     _delay_ms(TIME_UNIT);
 }
 
 void long_blink() {
-    PORTB |= (1 << PORT);
+    PORTB |= (1 << LED_PIN);
     _delay_ms(TIME_UNIT * 3);
-    PORTB &= ~(1 << PORT);
+    PORTB &= ~(1 << LED_PIN);
     _delay_ms(TIME_UNIT);
 }
 
@@ -24,6 +26,9 @@ void startMorseCode() {
     long_blink();
     short_blink();
     long_blink();
+
+    // Delay 2 more time units before starting message sequence
+    _delay_ms(TIME_UNIT * 2);
 }
 
 void endMorseCode() {
@@ -266,15 +271,18 @@ void translateToMorse(char str[]) {
 }
 
 int main() {
-    DDRB |= (1 << PORT);
+    // Set LED pin as output
+    DDRB |= (1 << LED_PIN);
+
+    // Set button pin as input with pull-up resistor (1 means no press)
+    PORTD |= (1 << BUTTON_PIN);
 
     while (1) {
-        startMorseCode();
-        translateToMorse("hello");
-        endMorseCode();
-
-        // Delay next start
-        _delay_ms(TIME_UNIT * 5);
+        if (!(PIND & (1 << BUTTON_PIN))) {
+            startMorseCode();
+            translateToMorse("SOS SOS");
+            endMorseCode();
+        }
     }
 
     return 0;
