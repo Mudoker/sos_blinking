@@ -288,9 +288,9 @@ int main() {
 
   while (1) {
     if (!(PIND & (1 << BUTTON_PIN))) {
-      // startMorseCode();
-      translateToMorse("S S");
-      // endMorseCode();
+      startMorseCode();
+      translateToMorse("SOS");
+      endMorseCode();
     }
   }
 
